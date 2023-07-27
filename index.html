@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>File Conversion App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      background-color: #f3f3f3;
+    }
+    #drop-zone {
+      width: 300px;
+      height: 200px;
+      border: 2px dashed #aaa;
+      border-radius: 10px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      cursor: pointer;
+      position: relative;
+    }
+    #drop-zone.hover {
+      border-color: #666;
+    }
+    #file-path {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      right: 10px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div id="drop-zone">
+    Drag a file here or click to select
+    <div id="file-path"></div>
+  </div>
+  <script src="renderer.js"></script>
+</body>
+</html>
