@@ -1,36 +1,84 @@
 const { ipcRenderer } = require('electron');
-const dropZone = document.getElementById('drop-zone');
-const filePathDiv = document.getElementById('file-path');
+const fileList = document.getElementById('file-list');
+const conversionOptionsSelect = document.getElementById('conversion-options'); 
+const convertButton = document.getElementById('convert-button'); 
 
-// Open file dialog when the drop zone is clicked
-dropZone.addEventListener('click', (event) => {
-  ipcRenderer.send('open-file-dialog');
-});
+const fileConversionOptions = {
+  audio: ['flac', 'aac', 'ogg', 'mp3', 'wav'],
+  video: ['webm', 'mkv', 'mp4', 'ogv', 'avi', 'gif'],
+  image: ['png', 'jpg', 'ico', 'webp'],
+  document: ['pdf']
+};
 
-// Change border color when file is dragged over drop zone
-dropZone.addEventListener('dragover', (event) => {
-  event.preventDefault();
-  dropZone.classList.add('hover');
-});
 
-// Reset border color when file is dragged out of drop zone
-dropZone.addEventListener('dragleave', (event) => {
-  dropZone.classList.remove('hover');
-});
+document.addEventListener('dragover', (event) => event.preventDefault());
+document.addEventListener('drop', (event) => event.preventDefault());
 
-// Handle dropped file
-dropZone.addEventListener('drop', (event) => {
-  event.preventDefault();
-  dropZone.classList.remove('hover');
-  
-  const file = event.dataTransfer.files[0];
-  
-  if (file) {
-    filePathDiv.textContent = `Selected file: ${file.path}`;
+
+function identifyFileType(filePath) {
+  const extension = filePath.split('.').pop().toLowerCase();
+  switch (extension) {
+    case 'flac': case 'aac': case 'ogg': case 'mp3': case 'wav':
+      return 'audio';
+    case 'webm': case 'mkv': case 'mp4': case 'ogv': case 'avi': case 'gif':
+      return 'video';
+    case 'png': case 'jpg': case 'ico': case 'webp':
+      return 'image';
+    case 'pdf': case 'docx': case 'pptx': case 'xlsx':
+      return 'document';
+    default:
+      return null;
   }
+}
+
+
+let allFiles = []; 
+
+
+function updateConversionOptions() {
+  conversionOptionsSelect.innerHTML = '';
+  if (allFiles.length === 0) {
+    convertButton.disabled = true; 
+    return;
+  }
+
+  const firstFileType = identifyFileType(allFiles[0].path);
+  const isSingleFileType = allFiles.every(file => identifyFileType(file.path) === firstFileType);
+  
+  if (isSingleFileType) {
+    const conversionOptions = fileConversionOptions[firstFileType];
+    conversionOptions.forEach(option => {
+      const optionElement = document.createElement('option');
+      optionElement.value = option;
+      optionElement.textContent = option;
+      conversionOptionsSelect.appendChild(optionElement);
+    });
+    convertButton.disabled = false; 
+  } else {
+    convertButton.disabled = true; 
+  }
+}
+
+
+document.addEventListener('drop', (event) => {
+  const files = Array.from(event.dataTransfer.files);
+  
+  allFiles = allFiles.concat(files); 
+
+  files.forEach(file => {
+    const fileItem = document.createElement('div');
+    fileItem.className = 'file-item';
+
+    const filePath = document.createElement('span');
+    filePath.textContent = file.path;
+    fileItem.appendChild(filePath);
+
+    fileList.appendChild(fileItem);
+  });
+
+  updateConversionOptions(); 
 });
 
-// Display file path when a file is selected from the dialog
-ipcRenderer.on('selected-file', (event, path) => {
-  filePathDiv.textContent = `Selected file: ${path}`;
+convertButton.addEventListener('click', () => {
+  console.log(`Converting ${allFiles.length} files to ${conversionOptionsSelect.value}`);
 });
