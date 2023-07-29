@@ -1,7 +1,10 @@
 const { ipcRenderer } = require('electron');
 const fileList = document.getElementById('file-list');
 const conversionOptionsSelect = document.getElementById('conversion-options'); 
-const convertButton = document.getElementById('convert-button'); 
+const convertButton = document.getElementById('convert-button');
+const { exec } = require('child_process');
+const ffmpegPath = require('ffmpeg-static');
+const sharp = require('sharp');
 
 const fileConversionOptions = {
   audio: ['flac', 'aac', 'ogg', 'mp3', 'wav'],
@@ -79,6 +82,38 @@ document.addEventListener('drop', (event) => {
   updateConversionOptions(); 
 });
 
+function convertFile(inputPath, outputPath, format) {
+  const fileType = identifyFileType(inputPath);
+  if (fileType === 'image') {
+    sharp(inputPath)
+    .toFormat(format)
+    .toFile(`${outputPath}.${format}`)
+    .catch(err => console.error(`Image conversion error: ${err}`));
+  } else {
+    const command = `"${ffmpegPath}" -i "${inputPath}" "${outputPath}.${format}"`;
+
+    exec(command, (error, stdout, stderr) => {
+      if (error) {
+        console.log(`Error: ${error.message}`);
+        return;
+      }
+      if (stderr) {
+        console.log(`stderr: ${stderr}`);
+        return;
+      }
+      console.log(`stdout: ${stdout}`);
+    });
+  }
+}
+
+
+
 convertButton.addEventListener('click', () => {
-  console.log(`Converting ${allFiles.length} files to ${conversionOptionsSelect.value}`);
+  const format = conversionOptionsSelect.value;
+  allFiles.forEach(file => {
+    console.log(file.path);
+    const outputPath = file.path.split('.').slice(0, -1).join('.'); 
+    convertFile(file.path, outputPath, format);
+  });
+  console.log(`Converting ${allFiles.length} files to ${format}`);
 });
