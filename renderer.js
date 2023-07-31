@@ -5,6 +5,7 @@ const convertButton = document.getElementById('convert-button');
 const { exec } = require('child_process');
 const ffmpegPath = require('ffmpeg-static');
 const sharp = require('sharp');
+const { clear } = require('console');
 
 const fileConversionOptions = {
   audio: ['flac', 'aac', 'ogg', 'mp3', 'wav'],
@@ -116,4 +117,11 @@ convertButton.addEventListener('click', () => {
     convertFile(file.path, outputPath, format);
   });
   console.log(`Converting ${allFiles.length} files to ${format}`);
+
+  while (fileList.firstChild) {
+    fileList.removeChild(fileList.firstChild);
+  }
+  allFiles = [];
+  updateConversionOptions(); 
 });
+
